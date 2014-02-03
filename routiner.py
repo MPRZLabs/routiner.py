@@ -22,12 +22,41 @@
 #  
 #  
 
+import sqlite3, logging
 
+def init():
+    global rlog, conn, c
+    rlog = logging.getLogger("routiner")
+    rlog.setLevel(logging.DEBUG)
+    rlogch = logging.StreamHandler()
+    rlogch.setLevel(logging.DEBUG)
+    rlogfm =  logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    rlogch.setFormatter(rlogfm)
+    rlog.addHandler(rlogch)
+    rlogfh = logging.FileHandler('log.log')
+    rlogfh.setFormatter(rlogfm)
+    rlog.addHandler(rlogfh)
+    rlog.info("Initializing SQLite database connection")
+    conn = sqlite3.connect('db.db')
+    c = conn.cursor();
+	
+def install():
+    global rlog, c
+    rlog.info("Performing initial queries")
+    c.execute("CREATE TABLE IF NOT EXISTS timeconditions (starthour integer, startminute integer, endhour integer, endminute integer, target text)")
+
+	
+def deinit():
+    global rlog, conn
+    rlog.info("Closing SQLite database connection")
+    conn.commit()
+    conn.close()
 
 def main():
-	
-	return 0
+    init()
+    install()
+    deinit()
+    return 0
 
 if __name__ == '__main__':
-	main()
-
+    main()
