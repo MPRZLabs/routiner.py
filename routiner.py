@@ -43,7 +43,10 @@ def init():
 def install():
     global rlog, c
     rlog.info("Performing initial queries")
-    c.execute("CREATE TABLE IF NOT EXISTS timeconditions (starthour integer, startminute integer, endhour integer, endminute integer, target text)")
+    c.execute("CREATE TABLE IF NOT EXISTS hourconditions (starthour integer, startminute integer, endhour integer, endminute integer, target text)")
+    c.execute("CREATE TABLE IF NOT EXISTS weekdayconditions (starthour integer default 0, startminute integer default 0, endhour integer default 23, endminute integer default 59, startweekday integer, endweekday integer, target text)")
+    c.execute("CREATE TABLE IF NOT EXISTS specialconditions (date text, target text)")
+    c.execute("CREATE TABLE IF NOT EXISTS targets (id text PRIMARY KEY)")
 
 	
 def deinit():
