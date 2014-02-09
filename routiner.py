@@ -49,14 +49,14 @@ def listday(dat_date):
 	for row in c.execute("SELECT * FROM hourconditions"):
 		rlog.info("From %s to %s - %s" % (time(row[0], row[1]).strftime("%H:%M"), time(row[2], row[3]).strftime("%H:%M"), row[4]))
 	
-#def install():
-    #global rlog, c
-    #rlog.info("Performing initial queries")
-    #c.execute("CREATE TABLE IF NOT EXISTS hourconditions (starthour integer, startminute integer, endhour integer, endminute integer, target text)")
-    #c.execute("CREATE TABLE IF NOT EXISTS weekdayconditions (starthour integer default 0, startminute integer default 0, endhour integer default 23, endminute integer default 59, weekday integer, target text)")
-    #c.execute("CREATE TABLE IF NOT EXISTS specialconditions (year integer, month integer, day integer, target text)")
-    #c.execute("CREATE TABLE IF NOT EXISTS targets (id text PRIMARY KEY)")
-    #c.execute("CREATE TABLE IF NOT EXISTS supress (target text, year integer, month integer, day integer)")
+def install():
+    global rlog, c
+    rlog.info("Performing initial queries")
+    c.execute("CREATE TABLE IF NOT EXISTS hourconditions (starthour integer, startminute integer, endhour integer, endminute integer, target text)")
+    c.execute("CREATE TABLE IF NOT EXISTS weekdayconditions (starthour integer default 0, startminute integer default 0, endhour integer default 23, endminute integer default 59, weekday integer, target text)")
+    c.execute("CREATE TABLE IF NOT EXISTS specialconditions (year integer, month integer, day integer, target text)")
+    c.execute("CREATE TABLE IF NOT EXISTS targets (id text PRIMARY KEY)")
+    c.execute("CREATE TABLE IF NOT EXISTS supress (target text, year integer, month integer, day integer)")
 
 	
 def deinit():
