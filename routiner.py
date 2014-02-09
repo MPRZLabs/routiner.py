@@ -42,13 +42,36 @@ def init():
     c = conn.cursor()
     
 def listday(dat_date):
-	global c, rlog
-	rlog.info("Listing tasks for %s" % (dat_date.strftime("%A, %B %d %Yy")))
-	for row in c.execute("SELECT * FROM weekdayconditions WHERE weekday=?", (dat_date.isoweekday(),)):
-	    rlog.info("From %s to %s - %s" % (time(row[0], row[1]).strftime("%H:%M"), time(row[2], row[3]).strftime("%H:%M"), row[5]))
-	for row in c.execute("SELECT * FROM hourconditions"):
-		rlog.info("From %s to %s - %s" % (time(row[0], row[1]).strftime("%H:%M"), time(row[2], row[3]).strftime("%H:%M"), row[4]))
-	
+    global c, rlog
+    supstack = []
+    wdcstack = []
+    hrcstack = []
+    rlog.info("Listing tasks for %s" % (dat_date.strftime("%A, %B %d %Yy")))
+    for row in c.execute("SELECT * FROM weekdayconditions WHERE weekday=?", (dat_date.isoweekday(),)):
+        wdcstack.append(row)
+    for row in wdcstack:
+        wdcfound = False
+        for row in c.execute("SELECT * FROM supress WHERE target=? AND year=? AND month=? AND day=?", (row[5],dat_date.year,dat_date.month,dat_date.day,)):
+            wdcfound = True
+        if not wdcfound:
+            rlog.info("From %s to %s - %s" % (time(row[0], row[1]).strftime("%H:%M"), time(row[2], row[3]).strftime("%H:%M"), row[5]))
+            sprs = raw_input(' Supress the notification? (y/N)')
+            if 'y' in sprs.lower():
+                supstack.append([row[5],dat_date.year,dat_date.month,dat_date.day,])
+    for row in c.execute("SELECT * FROM hourconditions"):
+        hrcstack.append(row)
+    for row in hrcstack:
+        hrcfound = False
+        for row in c.execute("SELECT * FROM supress WHERE target=? AND year=? AND month=? AND day=?", (row[4],dat_date.year,dat_date.month,dat_date.day,)):
+            hrcfound = True
+        if not hrcfound:
+            rlog.info("From %s to %s - %s" % (time(row[0], row[1]).strftime("%H:%M"), time(row[2], row[3]).strftime("%H:%M"), row[4]))
+            sprs = raw_input(' Supress the notification? (y/N)')
+            if 'y' in sprs.lower():
+                supstack.append([row[4],dat_date.year,dat_date.month,dat_date.day,])
+    
+    while len(supstack) > 0:
+        c.execute("INSERT INTO supress VALUES (?,?,?,?)", supstack.pop())
 def install():
     global rlog, c
     rlog.info("Performing initial queries")
