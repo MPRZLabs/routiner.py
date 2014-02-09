@@ -23,6 +23,7 @@
 #  
 
 import sqlite3, logging
+from datetime import date, time
 
 def init():
     global rlog, conn, c
@@ -38,15 +39,24 @@ def init():
     rlog.addHandler(rlogfh)
     rlog.info("Initializing SQLite database connection")
     conn = sqlite3.connect('db.db')
-    c = conn.cursor();
+    c = conn.cursor()
+    
+def listday(dat_date):
+	global c, rlog
+	rlog.info("Listing tasks for %s" % (dat_date.strftime("%A, %B %d %Yy")))
+	for row in c.execute("SELECT * FROM weekdayconditions WHERE weekday=?", (dat_date.isoweekday(),)):
+	    rlog.info("From %s to %s - %s" % (time(row[0], row[1]).strftime("%H:%M"), time(row[2], row[3]).strftime("%H:%M"), row[5]))
+	for row in c.execute("SELECT * FROM hourconditions"):
+		rlog.info("From %s to %s - %s" % (time(row[0], row[1]).strftime("%H:%M"), time(row[2], row[3]).strftime("%H:%M"), row[4]))
 	
-def install():
-    global rlog, c
-    rlog.info("Performing initial queries")
-    c.execute("CREATE TABLE IF NOT EXISTS hourconditions (starthour integer, startminute integer, endhour integer, endminute integer, target text)")
-    c.execute("CREATE TABLE IF NOT EXISTS weekdayconditions (starthour integer default 0, startminute integer default 0, endhour integer default 23, endminute integer default 59, startweekday integer, endweekday integer, target text)")
-    c.execute("CREATE TABLE IF NOT EXISTS specialconditions (date text, target text)")
-    c.execute("CREATE TABLE IF NOT EXISTS targets (id text PRIMARY KEY)")
+#def install():
+    #global rlog, c
+    #rlog.info("Performing initial queries")
+    #c.execute("CREATE TABLE IF NOT EXISTS hourconditions (starthour integer, startminute integer, endhour integer, endminute integer, target text)")
+    #c.execute("CREATE TABLE IF NOT EXISTS weekdayconditions (starthour integer default 0, startminute integer default 0, endhour integer default 23, endminute integer default 59, weekday integer, target text)")
+    #c.execute("CREATE TABLE IF NOT EXISTS specialconditions (year integer, month integer, day integer, target text)")
+    #c.execute("CREATE TABLE IF NOT EXISTS targets (id text PRIMARY KEY)")
+    #c.execute("CREATE TABLE IF NOT EXISTS supress (target text, year integer, month integer, day integer)")
 
 	
 def deinit():
@@ -57,7 +67,8 @@ def deinit():
 
 def main():
     init()
-    install()
+    #install()
+    listday(date.today())
     deinit()
     return 0
 
