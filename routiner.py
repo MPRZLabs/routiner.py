@@ -38,7 +38,7 @@ def init():
     rlogfh.setFormatter(rlogfm)
     rlog.addHandler(rlogfh)
     rlog.info("Initializing SQLite database connection")
-    conn = sqlite3.connect('db.db')
+    conn = sqlite3.connect('routiner.sqlite')
     c = conn.cursor()
     supstack = []
     
@@ -81,7 +81,6 @@ def install():
     c.execute("CREATE TABLE IF NOT EXISTS targets (id text PRIMARY KEY)")
     c.execute("CREATE TABLE IF NOT EXISTS supress (target text, year integer, month integer, day integer)")
 
-	
 def scheduleSuppress(target, year, month, day):
     supstack.append([target,year,month,day,])
 
@@ -97,7 +96,7 @@ def deinit():
 
 def main():
     init()
-    #install()
+    install()
     listday(date.today())
     performSuppress()
     deinit()
