@@ -26,7 +26,7 @@ import sqlite3, logging
 from datetime import date, time
 
 def init():
-    global rlog, conn, c
+    global rlog, conn, c, supstack
     rlog = logging.getLogger("routiner")
     rlog.setLevel(logging.DEBUG)
     rlogch = logging.StreamHandler()
@@ -40,10 +40,10 @@ def init():
     rlog.info("Initializing SQLite database connection")
     conn = sqlite3.connect('db.db')
     c = conn.cursor()
+    supstack = []
     
 def listday(dat_date):
     global c, rlog
-    supstack = []
     wdcstack = []
     hrcstack = []
     rlog.info("Listing tasks for %s" % (dat_date.strftime("%A, %B %d %Yy")))
@@ -55,9 +55,9 @@ def listday(dat_date):
             wdcfound = True
         if not wdcfound:
             rlog.info("From %s to %s - %s" % (time(row[0], row[1]).strftime("%H:%M"), time(row[2], row[3]).strftime("%H:%M"), row[5]))
-            sprs = raw_input(' Supress the notification? (y/N)')
+            sprs = raw_input('  Supress the notification? (y/N) ')
             if 'y' in sprs.lower():
-                supstack.append([row[5],dat_date.year,dat_date.month,dat_date.day,])
+                scheduleSuppress(row[5],dat_date.year,dat_date.month,dat_date.day)
     for row in c.execute("SELECT * FROM hourconditions"):
         hrcstack.append(row)
     for row in hrcstack:
@@ -66,12 +66,12 @@ def listday(dat_date):
             hrcfound = True
         if not hrcfound:
             rlog.info("From %s to %s - %s" % (time(row[0], row[1]).strftime("%H:%M"), time(row[2], row[3]).strftime("%H:%M"), row[4]))
-            sprs = raw_input(' Supress the notification? (y/N)')
+            sprs = raw_input('  Supress the notification? (y/N) ')
             if 'y' in sprs.lower():
-                supstack.append([row[4],dat_date.year,dat_date.month,dat_date.day,])
+                scheduleSuppress(row[4],dat_date.year,dat_date.month,dat_date.day)
     
-    while len(supstack) > 0:
-        c.execute("INSERT INTO supress VALUES (?,?,?,?)", supstack.pop())
+    
+    
 def install():
     global rlog, c
     rlog.info("Performing initial queries")
@@ -82,6 +82,13 @@ def install():
     c.execute("CREATE TABLE IF NOT EXISTS supress (target text, year integer, month integer, day integer)")
 
 	
+def scheduleSuppress(target, year, month, day):
+    supstack.append([target,year,month,day,])
+
+def performSuppress():
+    while len(supstack) > 0:
+        c.execute("INSERT INTO supress VALUES (?,?,?,?)", supstack.pop())
+    
 def deinit():
     global rlog, conn
     rlog.info("Closing SQLite database connection")
@@ -92,6 +99,7 @@ def main():
     init()
     #install()
     listday(date.today())
+    performSuppress()
     deinit()
     return 0
 
